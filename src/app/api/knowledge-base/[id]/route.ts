@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { knowledgeBase } from "@/lib/schema";
+import { knowledgeBase, knowledgeBaseItems } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 
 export async function DELETE(
@@ -10,6 +10,10 @@ export async function DELETE(
   try {
     const { id } = params;
 
+    // Delete associated items first (cascade should handle this, but being explicit)
+    await db.delete(knowledgeBaseItems).where(eq(knowledgeBaseItems.knowledgeBaseId, id));
+    
+    // Delete the knowledge base entry
     await db.delete(knowledgeBase).where(eq(knowledgeBase.id, id));
 
     return Response.json({ success: true });

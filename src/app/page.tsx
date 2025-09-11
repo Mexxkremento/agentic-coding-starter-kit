@@ -30,11 +30,31 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button size="lg" className="px-8 py-3 text-lg font-semibold">
+              <Button 
+                size="lg" 
+                className="px-8 py-3 text-lg font-semibold"
+                onClick={() => {
+                  // Scroll to demo section
+                  document.querySelector('.chat-bubble')?.scrollIntoView({ behavior: 'smooth' });
+                  // Or open chat directly
+                  setTimeout(() => {
+                    const chatBubble = document.querySelector('[data-chat-bubble]') as HTMLElement;
+                    chatBubble?.click();
+                  }, 1000);
+                }}
+              >
                 <MessageCircle className="mr-2 h-5 w-5" />
                 Demo starten
               </Button>
-              <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="px-8 py-3 text-lg"
+                onClick={() => {
+                  // Scroll to features section
+                  document.querySelector('.py-16.bg-white\\/50')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
                 Mehr erfahren
               </Button>
             </div>
@@ -161,10 +181,34 @@ export default function Home() {
                 Kontaktieren Sie uns für eine individuelle ChatBot-Lösung für Ihr Unternehmen
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="px-8 py-3 text-lg font-semibold">
+                <Button 
+                  size="lg" 
+                  className="px-8 py-3 text-lg font-semibold"
+                  onClick={() => {
+                    // Open mailto link
+                    window.open('mailto:info@baumi-chatbot.de?subject=Interesse an Baumi ChatBot&body=Hallo, ich interessiere mich für eine individuelle ChatBot-Lösung.', '_blank');
+                  }}
+                >
                   Jetzt kontaktieren
                 </Button>
-                <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="px-8 py-3 text-lg"
+                  onClick={() => {
+                    // Open chat with price inquiry
+                    const chatBubble = document.querySelector('[data-chat-bubble]') as HTMLElement;
+                    chatBubble?.click();
+                    setTimeout(() => {
+                      // Pre-fill with price question
+                      const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
+                      if (textarea) {
+                        textarea.value = 'Was kostet ein individueller ChatBot?';
+                        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                      }
+                    }, 2000);
+                  }}
+                >
                   Preise ansehen
                 </Button>
               </div>

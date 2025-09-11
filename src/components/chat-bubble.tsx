@@ -26,6 +26,7 @@ export function ChatBubble() {
     return (
       <div className="fixed bottom-6 right-6 z-50">
         <Button
+          data-chat-bubble
           onClick={handleOpen}
           className="rounded-full w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse"
         >
@@ -36,8 +37,19 @@ export function ChatBubble() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      <div className="bg-white rounded-lg shadow-2xl border w-96 h-[500px] flex flex-col">
+    <>
+      {/* Invisible overlay to prevent background scrolling */}
+      <div 
+        className="fixed inset-0 z-40"
+        onClick={(e) => e.stopPropagation()}
+        onWheel={(e) => e.preventDefault()}
+      />
+      <div className="fixed bottom-4 right-4 z-50 max-w-[90vw] max-h-[90vh]">
+      <div 
+        className="bg-white rounded-lg shadow-2xl border w-96 max-w-full h-[480px] max-h-[90vh] flex flex-col"
+        onWheel={(e) => e.stopPropagation()}
+        onScroll={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-t-lg flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -68,6 +80,7 @@ export function ChatBubble() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

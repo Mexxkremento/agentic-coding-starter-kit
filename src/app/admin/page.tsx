@@ -14,6 +14,8 @@ interface KnowledgeBaseItem {
   id: string;
   name: string;
   data: Record<string, unknown>;
+  datasetVersion?: string;
+  itemCount?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -62,10 +64,26 @@ export default function AdminPage() {
       return;
     }
 
+    let parsedData;
     try {
-      JSON.parse(jsonContent);
-    } catch (error) {
+      parsedData = JSON.parse(jsonContent);
+    } catch {
       setUploadStatus({ type: "error", message: "Ungültiges JSON-Format. Bitte überprüfen Sie die Syntax." });
+      return;
+    }
+
+    // Validate that it's an array of objects with pageContent and metadata
+    if (!Array.isArray(parsedData)) {
+      setUploadStatus({ type: "error", message: "JSON muss ein Array von Objekten sein." });
+      return;
+    }
+
+    const hasValidStructure = parsedData.every(item => 
+      item.pageContent && item.metadata && typeof item.pageContent === 'string'
+    );
+
+    if (!hasValidStructure) {
+      setUploadStatus({ type: "error", message: "Alle Objekte müssen 'pageContent' und 'metadata' enthalten." });
       return;
     }
 
@@ -78,12 +96,21 @@ export default function AdminPage() {
         },
         body: JSON.stringify({
           name: fileName,
-          data: JSON.parse(jsonContent),
+          data: parsedData,
+          updateMode: 'smart', // Smart update mode to avoid duplicates
         }),
       });
 
       if (response.ok) {
-        setUploadStatus({ type: "success", message: "Wissensbasis erfolgreich hochgeladen!" });
+        const result = await response.json();
+        const { updated, added, skipped, total } = result.stats || {};
+        
+        let message = "Wissensbasis erfolgreich verarbeitet!";
+        if (total > 0) {
+          message += ` (${added || 0} hinzugefügt, ${updated || 0} aktualisiert, ${skipped || 0} übersprungen)`;
+        }
+        
+        setUploadStatus({ type: "success", message });
         setFileName("");
         setJsonContent("");
         if (fileInputRef.current) {
@@ -92,10 +119,12 @@ export default function AdminPage() {
         // Refresh the knowledge base list
         await fetchKnowledgeBase();
       } else {
-        throw new Error("Upload fehlgeschlagen");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Upload fehlgeschlagen");
       }
-    } catch {
-      setUploadStatus({ type: "error", message: "Fehler beim Hochladen der Wissensbasis." });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Fehler beim Hochladen der Wissensbasis.";
+      setUploadStatus({ type: "error", message: errorMessage });
     } finally {
       setIsUploading(false);
     }
@@ -154,7 +183,7 @@ export default function AdminPage() {
               Wissensbasis hochladen
             </CardTitle>
             <CardDescription>
-              Laden Sie eine JSON-Datei mit Produktinformationen, FAQ oder anderen Inhalten hoch
+              Laden Sie eine JSON-Datei hoch. Das System erkennt automatisch Duplikate und aktualisiert nur geänderte Inhalte.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -249,7 +278,15 @@ export default function AdminPage() {
                       <FileJson className="h-5 w-5 text-blue-600" />
                       <div>
                         <h3 className="font-medium">{item.name}</h3>
-                        <div className="flex gap-2 mt-1">
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          <Badge variant="outline" className="text-xs">
+                            {item.itemCount || '0'} Einträge
+                          </Badge>
+                          {item.datasetVersion && (
+                            <Badge variant="outline" className="text-xs">
+                              Version: {item.datasetVersion}
+                            </Badge>
+                          )}
                           <Badge variant="outline" className="text-xs">
                             Erstellt: {new Date(item.createdAt).toLocaleDateString('de-DE')}
                           </Badge>
@@ -312,14 +349,25 @@ export default function AdminPage() {
   }
 ]`}
             </pre>
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-700">
-                <strong>Format-Hinweise:</strong>
-                <br />• Array von Objekten mit <code>pageContent</code> und <code>metadata</code>
-                <br />• Knowledge Base Einträge: <code>doc_type: "kb"</code>
-                <br />• Produkt Einträge: <code>origin: "product"</code> mit Links
-                <br />• Links werden automatisch in Chat-Antworten eingefügt
-              </p>
+            <div className="mt-4 space-y-3">
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  <strong>Format-Hinweise:</strong>
+                  <br />• Array von Objekten mit <code>pageContent</code> und <code>metadata</code>
+                  <br />• Knowledge Base Einträge: <code>doc_type: &quot;kb&quot;</code>
+                  <br />• Produkt Einträge: <code>origin: &quot;product&quot;</code> mit Links
+                  <br />• Links werden automatisch in Chat-Antworten eingefügt
+                </p>
+              </div>
+              <div className="p-3 bg-green-50 rounded-lg">
+                <p className="text-sm text-green-700">
+                  <strong>Smart Update:</strong>
+                  <br />• Beim erneuten Upload werden keine Duplikate erstellt
+                  <br />• Inhalte werden über <code>origin_ref</code> oder <code>product_name</code> identifiziert
+                  <br />• Nur geänderte Einträge werden aktualisiert
+                  <br />• Neue Einträge werden hinzugefügt, unveränderte übersprungen
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -54,9 +54,24 @@ export const knowledgeBase = pgTable("knowledge_base", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   data: json("data").notNull(),
+  datasetVersion: text("dataset_version"),
+  contentHash: text("content_hash"),
+  itemCount: text("item_count"),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
-  userId: text("userId")
+  userId: text("userId").notNull().default("demo-user"),
+});
+
+export const knowledgeBaseItems = pgTable("knowledge_base_items", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  knowledgeBaseId: text("knowledge_base_id")
     .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+    .references(() => knowledgeBase.id, { onDelete: "cascade" }),
+  pageContent: text("page_content").notNull(),
+  metadata: json("metadata").notNull(),
+  contentHash: text("content_hash").notNull(),
+  originRef: text("origin_ref"),
+  productName: text("product_name"),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
