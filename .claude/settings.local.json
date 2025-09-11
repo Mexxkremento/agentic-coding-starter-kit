@@ -10,14 +10,16 @@
       "mcp__playwright__browser_take_screenshot",
       "mcp__playwright__browser_close",
       "Bash(git add:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(pnpm dlx shadcn@latest add:*)",
+      "Read(//Users/AStegemann_1/Library/Mobile Documents/com~apple~CloudDocs/Webdesign/Chatbots/Erste Salzwedeler Baumkuchen/**)"
     ],
     "additionalDirectories": [
-      "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"
+      "/Users/AStegemann_1/Webdesign/tutorials/LeonvanZyl/ChatBot"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "context7"
+    "shadcn"
   ]
 }
